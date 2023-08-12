@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Meeting</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+<div class="container mt-5">
+    <h2 class="mb-4">Schedule a Meeting</h2>
+
+    <form id="createMeetingForm">
+        <div class="form-group">
+            <label for="meetingTitle">Meeting Title:</label>
+            <input type="text" class="form-control" id="meetingTitle" required>
+        </div>
+        <div class="form-group">
+            <label for="meetingRoom">Room:</label>
+            <select class="form-control" id="meetingRoom" required></select>
+        </div>
+        <div class="form-group">
+            <label for="meetingTime">Time:</label>
+            <input type="time" min="09:00" max="17:00" step="3600" class="form-control" id="meetingTime" required>
+        </div>
+        <div class="form-group">
+            <label for="meetingInvitees">Invitees (enter emails separated by commas):</label>
+            <input type="text" class="form-control" id="meetingInvitees" placeholder="e.g., user1@example.com, user2@example.com">
+        </div>
+
+        <button type="submit" class="btn btn-primary">Schedule Meeting</button>
+    </form>
+</div>
+
+<script>
+    function fetchRoomsAndPopulateDropdown() {
+        console.log("Fetching Rooms")
+        fetch('http://localhost:3000/api/rooms')
+            .then(response => response.json())
+            .then(data => {
+                const roomDropdown = document.getElementById('meetingRoom');
+                data.forEach(room => {
+                    const optionElement = document.createElement('option');
+                    optionElement.value = room.id;
+                    optionElement.textContent = room.name;
+                    roomDropdown.appendChild(optionElement);
+                });
+            })
+            .catch(error => {
+                console.error('Error fetching rooms:', error);
+            });
+    }
+
+    window.onload = fetchRoomsAndPopulateDropdown;  // No parentheses. We're just referencing the function, not invoking it.
+
+    document.getElementById('createMeetingForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        const title = document.getElementById('meetingTitle').value;
+        const room = document.getElementById('meetingRoom').value;
+        const time = document.getElementById('meetingTime').value;
+        const inviteesRaw = document.getElementById('meetingInvitees').value;
+        const invitees = inviteesRaw.split(',').map(email => email.trim());
+
+        const loggedInUser = JSON.parse(sessionStorage.getItem("loggedInUser"));
+
+        const meeting = {
+            userId: loggedInUser.id,
+            title: title,
+            room: room,
+            time: time,
+            invitees: invitees.map(email => ({ email: email }))
+        };
+
+        fetch('http://localhost:3000/api/meetings', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(meeting)
+        })
+            .then(response => response.json())
+            .then(data => {
+                alert('Meeting created successfully!');
+                window.location.href = '/main';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to create meeting. Please try again.');
+            });
+    });
+</script>
+</body>
+</html>

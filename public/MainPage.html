@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Homepage</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            background-color: #ffffff;
+            border-radius: 5px;
+            padding: 30px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #usernameDisplay {
+            color: #007BFF; /* Bootstrap primary color */
+        }
+
+        #meetingList {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+
+        .list-group-item {
+            border-left: none;
+            border-right: none;
+        }
+
+        .list-group-item:first-child {
+            border-top: none;
+        }
+
+        .list-group-item:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container mt-5">
+    <!-- Welcome message -->
+    <h2 class="mb-4">Welcome, <span id="usernameDisplay">[USERNAME]</span></h2>
+
+    <!-- Meeting List -->
+    <h4 class="mb-3">Your Meetings:</h4>
+    <ul id="meetingList" class="list-group mb-4">
+        <!-- This will be populated dynamically -->
+    </ul>
+
+    <!-- Navigation button to Create Meeting page -->
+    <button class="btn btn-primary btn-block" onclick="navigateToCreateMeeting()">Create New Meeting</button>
+
+    <!-- Edit Meeting Modal -->
+    <div id="editMeetingModal" style="display:none;">
+        <h4>Edit Meeting</h4>
+        <form id="editMeetingForm">
+            <div class="form-group">
+                <label for="meetingTitle">Title:</label>
+                <input type="text" class="form-control" id="meetingTitle">
+            </div>
+            <button type="button" class="btn btn-primary" onclick="saveMeetingChanges()">Save</button>
+            <button type="button" class="btn btn-secondary" onclick="hideEditModal()">Cancel</button>
+        </form>
+    </div>
+</div>
+
+<script>
+    let currentEditingMeetingId;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const loggedInUser = JSON.parse(sessionStorage.getItem("loggedInUser"));
+
+        if (loggedInUser && loggedInUser.fname && loggedInUser.lname) {
+            document.getElementById("usernameDisplay").innerText = loggedInUser.fname + ' ' + loggedInUser.lname;
+        } else {
+            console.warn("No user data available in session storage.");
+        }
+
+        // Fetch user's meetings from JSON server and populate the list
+        fetch(`http://localhost:3000/api/meetings?userId=${loggedInUser.id}`)
+            .then(response => response.json())
+            .then(organizedMeetings => {
+                if (Array.isArray(organizedMeetings)) {
+                    const meetingList = document.getElementById("meetingList");
+                    organizedMeetings.forEach(meeting => {
+                        if (meeting.userId === loggedInUser.id) {
+                            const listItem = document.createElement("li");
+                            listItem.classList.add("list-group-item");
+                            listItem.innerText = `${meeting.title} - ${meeting.room} - ${meeting.time}`;
+                            meetingList.appendChild(listItem);
+                        }
+                    });
+                } else {
+                    console.error("Fetched data is not an array:", organizedMeetings);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    });
+
+    function navigateToCreateMeeting() {
+        console.log("CREATINGMEETING")
+        window.location.href = "CreateMeeting.html";
+    }
+
+    function showEditModal(meetingId, meetingTitle) {
+        // Show the edit modal
+        document.getElementById('editMeetingModal').style.display = 'block';
+
+        // Populate the input fields with the current data
+        document.getElementById('meetingTitle').value = meetingTitle;
+
+        // Set the currently editing meeting ID
+        currentEditingMeetingId = meetingId;
+    }
+
+    function hideEditModal() {
+        document.getElementById('editMeetingModal').style.display = 'none';
+        currentEditingMeetingId = null;
+    }
+
+    function saveMeetingChanges() {
+        const updatedTitle = document.getElementById('meetingTitle').value;
+
+        // Make a fetch request to update the meeting (PUT request)
+        fetch(`http://localhost:3000/api/meetings/${currentEditingMeetingId}`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                title: updatedTitle,
+                // Add other meeting properties here if needed...
+            }),
+        })
+            .then(response => response.json())
+            .then(data => {
+                // Refresh the meetings list (or update the specific item)
+                hideEditModal();
+                refreshMeetingList(); // Add this function to update the list
+            })
+            .catch(error => {
+                console.error('Error updating meeting:', error);
+            });
+    }
+
+    // Add this function to update the meetings list after editing
+    function refreshMeetingList() {
+        const meetingList = document.getElementById("meetingList");
+        meetingList.innerHTML = ""; // Clear the existing list
+        fetchMeetings(); // Fetch and populate the meetings again
+    }
+</script>
+</body>
+</html>

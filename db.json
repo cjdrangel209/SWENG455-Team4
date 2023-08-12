@@ -1,0 +1,82 @@
+{
+  "users": [
+    {
+      "fname": "Gibson",
+      "lname": "Hoce",
+      "email": "gibson1262@gmail.com",
+      "password": "12345",
+      "id": 1
+    },
+    {
+      "fname": "Cory",
+      "lname": "Drangle",
+      "email": "gibzardhoce@gmail.com",
+      "password": 12345,
+      "id": 2
+    }
+  ],
+  "meetings": [
+    {
+      "title": "THE BOSS TIME",
+      "id": 1
+    },
+    {
+      "userId": 2,
+      "title": "BIG MEETING",
+      "room": "1",
+      "time": "10:00",
+      "invitees": [
+        {
+          "email": "gibson1262@gmail.com"
+        }
+      ],
+      "id": 2
+    },
+    {
+      "userId": 1,
+      "title": "THE BOSS TIME 2",
+      "room": "1",
+      "time": "11:00",
+      "invitees": [
+        {
+          "email": ""
+        }
+      ],
+      "id": 3
+    },
+    {
+      "userId": 2,
+      "title": "The BIG One",
+      "room": "1",
+      "time": "11:00",
+      "invitees": [
+        {
+          "email": "gibzardhoce@gmail.com"
+        }
+      ],
+      "id": 5
+    },
+    {
+      "userId": 1,
+      "title": "The BIG One",
+      "room": "1",
+      "time": "11:00",
+      "invitees": [
+        {
+          "email": "gibzardhoce@gmail.com"
+        }
+      ],
+      "id": 6
+    }
+  ],
+  "rooms": [
+    {
+      "id": 1,
+      "name": "Boss"
+    },
+    {
+      "id": 2,
+      "name": "Conference"
+    }
+  ]
+}
